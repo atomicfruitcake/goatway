@@ -8,6 +8,9 @@ import (
     "net/http"
 	"time"
 	"encoding/json"
+
+	"./goatway/redisConn/main"
+
 	"github.com/gorilla/mux"
 )
 
@@ -18,6 +21,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 func healthHandler(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("OK"))
 }
+
 
 func createJobHandler(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
@@ -62,7 +66,13 @@ func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler 
 	})
 }
 
+func pingTest() {
+	fmt.Println(redisConn.ping())
+}
+
+
 func main() {
+	pingTest()
 	fmt.Println("Starting new HTTP Server")
 	fmt.Println("Building Gorilla MUX Router")
 	router := mux.NewRouter().StrictSlash(true)
