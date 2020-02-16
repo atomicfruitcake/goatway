@@ -8,20 +8,32 @@ import (
     "net/http"
 	"time"
 	"encoding/json"
+
 	"github.com/atomicfruitcake/goatway/redis"
+	"github.com/atomicfruitcake/goatway/client"
+
 	"github.com/gorilla/mux"
 )
 
+
 type Job struct {
     AssetId string
-	JobId  string
+	JobId   string
 	Service string
+	Status  int
 }
+
+const (
+	Pending     int = 0
+	Processing  int = 1
+	Success   	int = 2
+	Error 		int = 3
+ )
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
-	return
+	http.Redirect(w, r, "http://0.0.0.0:9090/health", 302)
+	
 }
-
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("OK"))
@@ -29,29 +41,28 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 
 func createJobHandler(w http.ResponseWriter, r *http.Request) {
-
 	var j Job
-
     err := json.NewDecoder(r.Body).Decode(&j)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
     }
-
-	// Do something with the Person struct...
-	fmt.Println(j)
-    fmt.Fprintf(w, "Job %+v", j)
-
-	body, err := ioutil.ReadAll(r.Body)
-        if err != nil {
-			msg := fmt.Sprintf("Error reading body due to %v", err)
-            log.Print(msg)
-            http.Error(w, msg, http.StatusBadRequest)
-            return
-		}
-	w.Header().Set("Content-Type", "application/json")
-
-	fmt.Println(body)
+	j.Status = Processing
+	bytes, err := json.Marshal(j)
+    if err != nil {
+        msg := fmt.Sprintf("Error reading body due to %v", err)
+		log.Print(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	err = redis.Set(j.JobId, bytes)
+	if err != nil {
+		msg := fmt.Sprintf("Error saving job status due to %v", err)
+		log.Print(msg)
+		http.Error(w, msg, http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusCreated)
 }
 
 func getJobHandler(w http.ResponseWriter, r *http.Request) {
@@ -86,18 +97,11 @@ func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler 
 	})
 }
 
-func pingTest() {
-	fmt.Println(redis.Ping())
-}
-
-
 func main() {
-	pingTest()
-	fmt.Println("Starting new HTTP Server")
-	fmt.Println("Building Gorilla MUX Router")
+	redis.Ping()
+	fmt.Println("Starting a new Goatway HTTP Server")
+	fmt.Println("Building the Gorilla MUX Router")
 	router := mux.NewRouter().StrictSlash(true)
-
-	
 
 	router.HandleFunc("/", rootHandler).Methods("GET")
     router.HandleFunc("/health", healthHandler).Methods("GET")
@@ -119,8 +123,6 @@ func main() {
 	)
 	flag.Parse()
 	
-	fmt.Println("Creating HTTP Webserver")
-
 	srv := &http.Server{
         Addr:         "0.0.0.0:9090",
         WriteTimeout: time.Second * 15,
@@ -129,7 +131,7 @@ func main() {
         Handler: router, 
 	}
 
-	fmt.Println("Running HTTP Webserver on port 9090")
+	fmt.Println("Goatway HTTP Webserver is on port 9090")
 
 	srv.ListenAndServe()
 	// go func() {
