@@ -16,7 +16,7 @@ var validServices = map[string]bool {
 	"exampleServiceA": true,
     "exampleServiceB": true,
 }
-
+// SendJob Send a Job to a dowstream service using an HTTP POST Request
 func SendJob(service string, body []byte) error {
 	if !validServices[service] {
 		return error(fmt.Errorf("Service %s is not a valid Service", service))
