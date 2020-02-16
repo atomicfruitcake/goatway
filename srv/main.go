@@ -15,12 +15,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
 type Job struct {
     AssetId string
 	JobId   string
 	Service string
 	Status  int
+}
+
+type JobReq struct{
+	JobId string
 }
 
 const (
@@ -39,38 +42,67 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("OK"))
 }
 
-
 func createJobHandler(w http.ResponseWriter, r *http.Request) {
 	var j Job
     err := json.NewDecoder(r.Body).Decode(&j)
     if err != nil {
+		msg := fmt.Sprintf("Error decoding request body due to %v", err)
+		log.Print(msg)
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
-    }
+	}
+	
 	j.Status = Processing
 	bytes, err := json.Marshal(j)
     if err != nil {
-        msg := fmt.Sprintf("Error reading body due to %v", err)
+        msg := fmt.Sprintf("Error marshalling request body due to %v", err)
 		log.Print(msg)
-		http.Error(w, msg, http.StatusBadRequest)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
+
+	err = client.sendJob(j.Service, bytes)
+	if err != nil {
+		msg := fmt.Sprintf("Error sending job to service due to %v", err)
+		log.Print(msg)
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
+	}
+
 	err = redis.Set(j.JobId, bytes)
 	if err != nil {
 		msg := fmt.Sprintf("Error saving job status due to %v", err)
 		log.Print(msg)
-		http.Error(w, msg, http.StatusBadRequest)
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
 }
 
 func getJobHandler(w http.ResponseWriter, r *http.Request) {
+	var jr JobReq
+    err := json.NewDecoder(r.Body).Decode(&jr)
+    if err != nil {
+        msg := fmt.Sprintf("Error decoding request body due to %v", err)
+		log.Print(msg)
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+	}
+	job, err = redis.Get(j.JobId)
+	if err != nil {
+		msg := fmt.Sprintf("Error finding job %s due to %v", j.JobId, err)
+		log.Print(msg)
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+	}
+	res, err := json.Marshal(job)
+  	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Println(r.Body)
-	w.Write([]byte("FOOBAR"))
-	json.NewEncoder(w).Encode("")
-  }
+	w.Write(res)
+
 
 type authenticationMiddleware struct {
 
@@ -109,6 +141,8 @@ func main() {
 	router.HandleFunc("/getJob", getJobHandler).Methods("GET", "POST")
 	http.Handle("/", router)
 
+	// Not applying auth since it will apply to /health and block Load Balancer health checks
+	
 	// amw := authenticationMiddleware{}
 	// amw.Populate()
 	// router.Use(amw.Middleware)
@@ -121,8 +155,7 @@ func main() {
 		time.Second * 15,
 		"Graceful Shutdown time is 15 seconds",
 	)
-	flag.Parse()
-	
+	flag.Parse()	
 	srv := &http.Server{
         Addr:         "0.0.0.0:9090",
         WriteTimeout: time.Second * 15,
@@ -130,16 +163,6 @@ func main() {
         IdleTimeout:  time.Second * 60,
         Handler: router, 
 	}
-
 	fmt.Println("Goatway HTTP Webserver is on port 9090")
-
 	srv.ListenAndServe()
-	// go func() {
-	// 	http.ListenAndServe(":9090", nil)
-    //     if err := srv.ListenAndServe(); err != nil {
-	// 		fmt.Println("Server crashed")
-	// 		fmt.Println(err)
-	// 		log.Fatal(err)
-    //     }
-	// }()
 }
