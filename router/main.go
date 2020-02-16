@@ -12,9 +12,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type Job struct {
+    AssetId string
+	JobId  string
+	Service string
+}
+
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
+
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("OK"))
@@ -22,6 +29,19 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 
 func createJobHandler(w http.ResponseWriter, r *http.Request) {
+
+	var j Job
+
+    err := json.NewDecoder(r.Body).Decode(&j)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+	// Do something with the Person struct...
+	fmt.Println(j)
+    fmt.Fprintf(w, "Job %+v", j)
+
 	body, err := ioutil.ReadAll(r.Body)
         if err != nil {
 			msg := fmt.Sprintf("Error reading body due to %v", err)
@@ -29,6 +49,8 @@ func createJobHandler(w http.ResponseWriter, r *http.Request) {
             http.Error(w, msg, http.StatusBadRequest)
             return
 		}
+	w.Header().Set("Content-Type", "application/json")
+
 	fmt.Println(body)
 }
 
@@ -65,7 +87,7 @@ func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler 
 }
 
 func pingTest() {
-	fmt.Println(redis.ping())
+	fmt.Println(redis.Ping())
 }
 
 
