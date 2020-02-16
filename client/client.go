@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"encoding/json"
 )
 
 // Set the URL of a downstream client
@@ -18,12 +17,12 @@ var validServices = map[string]bool {
     "exampleServiceB": true,
 }
 
-func sendJob(service string, body []byte) error {
+func SendJob(service string, body []byte) error {
 	if !validServices[service] {
 		return error(fmt.Errorf("Service %s is not a valid Service", service))
 	}
-
-	req, _ := http.NewRequest("POST", fmt.Sprintf(clientHost + service), bytes.NewBuffer(body))
+	url := fmt.Sprintf(clientHost + service)
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(body))
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("admintoken", adminToken)
 	res, err := http.DefaultClient.Do(req)

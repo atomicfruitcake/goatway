@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
     "log"
     "net/http"
 	"time"
@@ -61,7 +60,7 @@ func createJobHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = client.sendJob(j.Service, bytes)
+	err = client.SendJob(j.Service, bytes)
 	if err != nil {
 		msg := fmt.Sprintf("Error sending job to service due to %v", err)
 		log.Print(msg)
@@ -88,9 +87,9 @@ func getJobHandler(w http.ResponseWriter, r *http.Request) {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
 	}
-	job, err = redis.Get(j.JobId)
+	job, err := redis.Get(jr.JobId)
 	if err != nil {
-		msg := fmt.Sprintf("Error finding job %s due to %v", j.JobId, err)
+		msg := fmt.Sprintf("Error finding job %s due to %v", jr.JobId, err)
 		log.Print(msg)
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -102,7 +101,7 @@ func getJobHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
-
+}
 
 type authenticationMiddleware struct {
 
@@ -142,7 +141,7 @@ func main() {
 	http.Handle("/", router)
 
 	// Not applying auth since it will apply to /health and block Load Balancer health checks
-	
+
 	// amw := authenticationMiddleware{}
 	// amw.Populate()
 	// router.Use(amw.Middleware)
