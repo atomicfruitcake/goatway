@@ -112,9 +112,10 @@ type authenticationMiddleware struct {
 	tokenUsers map[string]string
 }
 
-var amw *authenticationMiddleware
-
 func (amw *authenticationMiddleware) Populate() {
+	if amw.tokenUsers == nil {
+        amw.tokenUsers = make(map[string]string)
+    }
 	amw.tokenUsers["thisIsAnExampleUserToken"] = "token123"
 	amw.tokenUsers["adminToken"] = "admin"
 }
@@ -146,9 +147,9 @@ func main() {
 
 	// Not applying auth since it will apply to /health and block Load Balancer health checks
 
-	// amw := authenticationMiddleware{}
-	// amw.Populate()
-	// router.Use(amw.Middleware)
+	amw := authenticationMiddleware{}
+	amw.Populate()
+	router.Use(amw.Middleware)
 
 	var wait time.Duration
 	flag.DurationVar(
