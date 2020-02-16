@@ -9,7 +9,7 @@ import (
 	"time"
 	"encoding/json"
 
-	"./goatway/redisConn/main"
+	"redis"
 
 	"github.com/gorilla/mux"
 )
@@ -67,7 +67,7 @@ func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler 
 }
 
 func pingTest() {
-	fmt.Println(redisConn.ping())
+	fmt.Println(redis.ping())
 }
 
 
