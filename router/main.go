@@ -8,9 +8,7 @@ import (
     "net/http"
 	"time"
 	"encoding/json"
-
-	"redis"
-
+	"github.com/atomicfruitcake/goatway/redis"
 	"github.com/gorilla/mux"
 )
 
