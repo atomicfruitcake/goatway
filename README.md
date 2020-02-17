@@ -32,7 +32,7 @@ And you will receive the response `OK`
 You can compile Goatway down into a binary by building with `go build` using the following commands:
 
 ```bash
-go build /path/to/goatway//main.go
+go build /path/to/goatway/main.go
 ```
 
 This will compile the program into a binary called `main` in your local directory. You can then run that program with:
