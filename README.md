@@ -37,6 +37,6 @@ go build /path/to/goatway//main.go
 
 This will compile the program into a binary called `main` in your local directory. You can then run that program with:
 
-```shell
+```bash
 ./main
 ```
