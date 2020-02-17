@@ -1,7 +1,10 @@
 package constants
 
-// Port HTTP port where the application is run on
-const Port = "9090"
+// AppPort HTTP port where the application is run on
+const AppPort = "9090"
+
+// RedisURL URL where the redis-server can be found
+const RedisURL = "localhost:6379"
 
 // Job data used to identify and transfer jobs handles by goatway
 type Job struct {

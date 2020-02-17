@@ -2,9 +2,12 @@ package redis
 
 import (
 	"fmt"
-	"github.com/gomodule/redigo/redis"
 	"log"
 	"os"
+
+	"github.com/atomicfruitcake/goatway/constants"
+
+	"github.com/gomodule/redigo/redis"
 )
 
 func pool() (rPool redis.Pool) {
@@ -12,7 +15,7 @@ func pool() (rPool redis.Pool) {
 		MaxIdle:   50,
 		MaxActive: 10000,
 		Dial: func() (redis.Conn, error) {
-			conn, err := redis.Dial("tcp", "localhost:6379")
+			conn, err := redis.Dial("tcp", constants.RedisURL)
 			if err != nil {
 				log.Fatal("ERROR: fail initializing the redis pool")
 				os.Exit(1)
