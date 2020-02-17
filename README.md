@@ -40,3 +40,13 @@ This will compile the program into a binary called `main` in your local director
 ```bash
 ./main
 ```
+
+## Docker Support
+Goatway can be built and run with `docker`. You can build the docker image from the root of Goatway using:
+```bash
+docker build -t goatway .
+```
+You can then run the application with:
+```bash
+docker run goatway
+```

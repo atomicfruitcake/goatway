@@ -10,6 +10,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+
 func pool() (rPool redis.Pool) {
 	return redis.Pool{
 		MaxIdle:   50,
