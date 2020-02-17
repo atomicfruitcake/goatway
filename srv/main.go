@@ -15,28 +15,34 @@ import (
 	"github.com/atomicfruitcake/goatway/handlers/getjob"
 	"github.com/atomicfruitcake/goatway/handlers/health"
 	"github.com/atomicfruitcake/goatway/handlers/root"
-	"github.com/atomicfruitcake/goatway/auth"
+	"github.com/atomicfruitcake/goatway/middleware/auth"
+	"github.com/atomicfruitcake/goatway/middleware/logging"
 	"github.com/atomicfruitcake/goatway/redis"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
-	redis.Ping()
+	err := redis.Ping()
+	if err != nil {
+		log.Fatal("Could not connect to Redis, cannot boot Goatway")
+		
+	}
 	fmt.Println("Starting a new Goatway HTTP Server")
 	fmt.Println("Building the Gorilla MUX Router")
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/", root.Handler).Methods("GET")
 	router.HandleFunc("/health", health.Handler).Methods("GET")
+	router.Use(logging.Middleware)
 
 	jobrouter := router.PathPrefix("/job").Subrouter()
 	jobrouter.HandleFunc("/createJob", createjob.Handler).Methods("POST")
 	jobrouter.HandleFunc("/getJob", getjob.Handler).Methods("GET", "POST")
 
-	amw := auth.AuthenticationMiddleware{}
-	amw.Populate()
-	jobrouter.Use(amw.Middleware)
+	am := auth.Middleware{}
+	am.Populate()
+	jobrouter.Use(am.Middleware)
 	http.Handle("/", router)
 
 	var wait time.Duration
@@ -70,5 +76,5 @@ func main() {
     srv.Shutdown(ctx)
 
     log.Println("Shutting Down Goatway Server")
-    os.Exit(0)
+	os.Exit(0)
 }
