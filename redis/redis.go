@@ -34,7 +34,7 @@ func Ping() error {
 	if err != nil {
 		return fmt.Errorf("cannot 'PING' db: %v", err)
 	}
-	fmt.Printf("PING response from Redis was %s\n", res)
+	log.Printf("PING response from Redis was %s\n", res)
 	return err
 }
 
