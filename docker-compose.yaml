@@ -2,13 +2,18 @@ version: '3'
 
 services:
   goatway:
+    build: .
     image: goatway
     ports:
       - "9090:9090"
     depends_on:
       - redis
+    links:
+      - redis
   redis:
     image: redis:alpine
+    ports:
+      - "6379:6379"
     volumes:
       - ./config/redis.conf:/usr/local/etc/redis/redis.conf
     command:

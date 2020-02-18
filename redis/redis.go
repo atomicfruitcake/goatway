@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/atomicfruitcake/goatway/constants"
 
@@ -12,6 +13,7 @@ import (
 
 
 func pool() (rPool redis.Pool) {
+	time.Sleep(10*time.Second)
 	return redis.Pool{
 		MaxIdle:   50,
 		MaxActive: 10000,

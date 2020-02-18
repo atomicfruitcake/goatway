@@ -50,3 +50,10 @@ You can then run the application with:
 ```bash
 docker run goatway
 ```
+However, you will need to be running a redis-server locally.
+
+To run everything in containers, you can use `docker-compose`. In the root of Goatway, you can run
+```bash
+docker-compose up
+```
+Which will launch both Goatway and a redis-server, connect them together and run on port 9090
